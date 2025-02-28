@@ -1659,5 +1659,12 @@ describe("curachain", () => {
       })
       .signers([newAdmin])
       .rpc();
+
+    // Now, i will use the getAccountInfo function on the patient2Case pda, and if it's indeed close,
+    // solana runtime will return a null
+    const patient2CaseCloseData = await provider.connection.getAccountInfo(
+      patient2CasePDA
+    );
+    expect(patient2CaseCloseData).to.eq(null);
   });
 });
