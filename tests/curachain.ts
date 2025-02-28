@@ -1661,6 +1661,3 @@ describe("curachain", () => {
       .rpc();
   });
 });
-function resolve(event: any) {
-  throw new Error("Function not implemented.");
-}
