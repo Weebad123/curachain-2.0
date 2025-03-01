@@ -4,6 +4,9 @@
 resolution = true
 skip-lint = false
 
+[programs.devnet]
+curachain = "FRM52RYMbEqwb4WuBv6E7aiHv16acVZ1wBYaNRDYsnoh"
+
 [programs.localnet]
 curachain = "ACVeDFAirffL1Tx3QggFewJWajywkpXApJsknyrML57r"
 
@@ -11,8 +14,8 @@ curachain = "ACVeDFAirffL1Tx3QggFewJWajywkpXApJsknyrML57r"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
-wallet = "~/.config/solana/id.json"
+cluster = "Devnet"
+wallet = "./turbin3-wallet.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
