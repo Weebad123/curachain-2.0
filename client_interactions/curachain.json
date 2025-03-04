@@ -1,0 +1,1889 @@
+{
+  "address": "FRM52RYMbEqwb4WuBv6E7aiHv16acVZ1wBYaNRDYsnoh",
+  "metadata": {
+    "name": "curachain",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "add_or_remove_verifier",
+      "discriminator": [
+        185,
+        30,
+        179,
+        198,
+        21,
+        150,
+        118,
+        73
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "admin_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "admin"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verifier",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  114,
+                  105,
+                  102,
+                  105,
+                  101,
+                  114,
+                  95,
+                  114,
+                  111,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "verifier_address"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verifiers_list",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  114,
+                  105,
+                  102,
+                  105,
+                  101,
+                  114,
+                  115,
+                  95,
+                  108,
+                  105,
+                  115,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "verifier",
+          "type": "pubkey"
+        },
+        {
+          "name": "operation_type",
+          "type": {
+            "defined": {
+              "name": "VerifierOperationType"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "close_rejected_case",
+      "discriminator": [
+        50,
+        215,
+        84,
+        79,
+        124,
+        237,
+        169,
+        56
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "case_lookup",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  115,
+                  101,
+                  95,
+                  108,
+                  111,
+                  111,
+                  107,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "case_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "patient_case",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  116,
+                  105,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "case_lookup.patient_address",
+                "account": "CaseIDLookup"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verifiers_list",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  114,
+                  105,
+                  102,
+                  105,
+                  101,
+                  114,
+                  115,
+                  95,
+                  108,
+                  105,
+                  115,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "case_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "donate",
+      "discriminator": [
+        121,
+        186,
+        218,
+        211,
+        73,
+        70,
+        196,
+        180
+      ],
+      "accounts": [
+        {
+          "name": "donor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "case_lookup",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  115,
+                  101,
+                  95,
+                  108,
+                  111,
+                  111,
+                  107,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "case_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "patient_case",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  116,
+                  105,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "case_lookup.patient_address",
+                "account": "CaseIDLookup"
+              }
+            ]
+          }
+        },
+        {
+          "name": "patient_escrow",
+          "docs": [
+            "CHECKED: This account has already been created and it's safe now."
+          ],
+          "writable": true
+        },
+        {
+          "name": "donor_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  111,
+                  110,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "donor"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "case_id",
+          "type": "string"
+        },
+        {
+          "name": "amount_to_donate",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_administrator",
+      "discriminator": [
+        146,
+        147,
+        168,
+        185,
+        254,
+        212,
+        241,
+        141
+      ],
+      "accounts": [
+        {
+          "name": "admin_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "admin_address"
+              }
+            ]
+          }
+        },
+        {
+          "name": "initializer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "admin_address",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "initialize_global_verifiers_list_and_case_counter",
+      "discriminator": [
+        153,
+        23,
+        121,
+        65,
+        54,
+        107,
+        129,
+        40
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "admin_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "admin"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verifiers_registry_list",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  114,
+                  105,
+                  102,
+                  105,
+                  101,
+                  114,
+                  115,
+                  95,
+                  108,
+                  105,
+                  115,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "case_counter",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  115,
+                  101,
+                  95,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "release_funds",
+      "discriminator": [
+        225,
+        88,
+        91,
+        108,
+        126,
+        52,
+        2,
+        26
+      ],
+      "accounts": [
+        {
+          "name": "case_lookup",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  115,
+                  101,
+                  95,
+                  108,
+                  111,
+                  111,
+                  107,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "case_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "patient_case",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  116,
+                  105,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "case_lookup.patient_address",
+                "account": "CaseIDLookup"
+              }
+            ]
+          }
+        },
+        {
+          "name": "patient_escrow",
+          "docs": [
+            "CHECKED: This account has already been created and it's safe now."
+          ],
+          "writable": true
+        },
+        {
+          "name": "facility_address",
+          "docs": [
+            "CHECKED: The Facility Address To Receive Funds For Patient Treatment"
+          ],
+          "writable": true
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "admin_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "admin"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verifier1",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "verifier2",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "verifier3",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "verifier1_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  114,
+                  105,
+                  102,
+                  105,
+                  101,
+                  114,
+                  95,
+                  114,
+                  111,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "verifier1"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verifier2_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  114,
+                  105,
+                  102,
+                  105,
+                  101,
+                  114,
+                  95,
+                  114,
+                  111,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "verifier2"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verifier3_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  114,
+                  105,
+                  102,
+                  105,
+                  101,
+                  114,
+                  95,
+                  114,
+                  111,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "verifier3"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verifiers_list",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  114,
+                  105,
+                  102,
+                  105,
+                  101,
+                  114,
+                  115,
+                  95,
+                  108,
+                  105,
+                  115,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "case_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "submit_cases",
+      "discriminator": [
+        153,
+        4,
+        184,
+        173,
+        201,
+        158,
+        81,
+        50
+      ],
+      "accounts": [
+        {
+          "name": "patient",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "patient_case",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  116,
+                  105,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "patient"
+              }
+            ]
+          }
+        },
+        {
+          "name": "case_counter",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  115,
+                  101,
+                  95,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "case_lookup",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  115,
+                  101,
+                  95,
+                  108,
+                  111,
+                  111,
+                  107,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  111,
+                  114,
+                  109,
+                  97,
+                  116,
+                  33,
+                  32,
+                  40,
+                  34,
+                  67,
+                  65,
+                  83,
+                  69,
+                  123,
+                  58,
+                  48,
+                  52,
+                  125,
+                  34,
+                  44,
+                  32,
+                  99,
+                  97,
+                  115,
+                  101,
+                  95,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "case_description",
+          "type": "string"
+        },
+        {
+          "name": "total_amount_needed",
+          "type": "u64"
+        },
+        {
+          "name": "link_to_records",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "verify_patient",
+      "discriminator": [
+        90,
+        236,
+        7,
+        3,
+        187,
+        151,
+        116,
+        203
+      ],
+      "accounts": [
+        {
+          "name": "verifier",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "verifier_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  114,
+                  105,
+                  102,
+                  105,
+                  101,
+                  114,
+                  95,
+                  114,
+                  111,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "verifier"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verifiers_list",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  114,
+                  105,
+                  102,
+                  105,
+                  101,
+                  114,
+                  115,
+                  95,
+                  108,
+                  105,
+                  115,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "case_lookup",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  115,
+                  101,
+                  95,
+                  108,
+                  111,
+                  111,
+                  107,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "case_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "patient_case",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  116,
+                  105,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "case_lookup.patient_address",
+                "account": "CaseIDLookup"
+              }
+            ]
+          }
+        },
+        {
+          "name": "patient_escrow",
+          "docs": [
+            "CHECKED: This account does not exist yet, and may be created upon successful verification"
+          ],
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "case_id",
+          "type": "string"
+        },
+        {
+          "name": "is_yes",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "view_case_details",
+      "discriminator": [
+        125,
+        112,
+        250,
+        247,
+        147,
+        142,
+        28,
+        127
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "case_lookup",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  115,
+                  101,
+                  95,
+                  108,
+                  111,
+                  111,
+                  107,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "case_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "patient_case",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  116,
+                  105,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "case_lookup.patient_address",
+                "account": "CaseIDLookup"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "case_id",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Administrator",
+      "discriminator": [
+        17,
+        227,
+        133,
+        8,
+        44,
+        57,
+        118,
+        110
+      ]
+    },
+    {
+      "name": "CaseCounter",
+      "discriminator": [
+        132,
+        211,
+        157,
+        248,
+        128,
+        105,
+        215,
+        22
+      ]
+    },
+    {
+      "name": "CaseIDLookup",
+      "discriminator": [
+        1,
+        200,
+        85,
+        180,
+        227,
+        114,
+        143,
+        245
+      ]
+    },
+    {
+      "name": "DonorInfo",
+      "discriminator": [
+        79,
+        247,
+        205,
+        220,
+        63,
+        73,
+        99,
+        128
+      ]
+    },
+    {
+      "name": "PatientCase",
+      "discriminator": [
+        190,
+        244,
+        208,
+        116,
+        229,
+        1,
+        231,
+        238
+      ]
+    },
+    {
+      "name": "Verifier",
+      "discriminator": [
+        195,
+        177,
+        185,
+        71,
+        72,
+        61,
+        77,
+        112
+      ]
+    },
+    {
+      "name": "VerifiersList",
+      "discriminator": [
+        75,
+        207,
+        103,
+        108,
+        203,
+        15,
+        15,
+        249
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AddingNewVerifier",
+      "discriminator": [
+        86,
+        35,
+        214,
+        236,
+        224,
+        110,
+        183,
+        73
+      ]
+    },
+    {
+      "name": "CloseRejectedPatientCase",
+      "discriminator": [
+        194,
+        228,
+        55,
+        59,
+        12,
+        182,
+        183,
+        70
+      ]
+    },
+    {
+      "name": "DonationsMade",
+      "discriminator": [
+        148,
+        110,
+        90,
+        18,
+        148,
+        140,
+        61,
+        177
+      ]
+    },
+    {
+      "name": "GlobalRegistryInitializeEvent",
+      "discriminator": [
+        161,
+        70,
+        238,
+        213,
+        117,
+        204,
+        44,
+        216
+      ]
+    },
+    {
+      "name": "InitializeAdmin",
+      "discriminator": [
+        123,
+        253,
+        117,
+        149,
+        217,
+        80,
+        166,
+        14
+      ]
+    },
+    {
+      "name": "PatientCaseSubmission",
+      "discriminator": [
+        133,
+        124,
+        217,
+        5,
+        84,
+        17,
+        2,
+        68
+      ]
+    },
+    {
+      "name": "PatientCaseVerificationStatus",
+      "discriminator": [
+        104,
+        237,
+        7,
+        57,
+        251,
+        195,
+        4,
+        228
+      ]
+    },
+    {
+      "name": "ReleaseOfFunds",
+      "discriminator": [
+        26,
+        237,
+        208,
+        220,
+        206,
+        128,
+        28,
+        40
+      ]
+    },
+    {
+      "name": "RemovingExistingVerifier",
+      "discriminator": [
+        152,
+        130,
+        195,
+        223,
+        198,
+        111,
+        7,
+        81
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "NotVerifiedSuccessfully",
+      "msg": "Patient Case Has Not Been Verified"
+    },
+    {
+      "code": 6001,
+      "name": "CaseAlreadyVerified",
+      "msg": "Patient Case Has Already Been Verified"
+    },
+    {
+      "code": 6002,
+      "name": "OnlyAdmin",
+      "msg": "Only Callable By Administrator"
+    },
+    {
+      "code": 6003,
+      "name": "OnlyVerifier",
+      "msg": "Only Caller With The Verifier Role Can Call This Function"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidAdminAccount",
+      "msg": "Provided Admin Account Is Invalid"
+    },
+    {
+      "code": 6005,
+      "name": "VerifierAlreadyExists",
+      "msg": "Verifier Address Already Exist In The Registry Of Verifiers"
+    },
+    {
+      "code": 6006,
+      "name": "VerifierNotFound",
+      "msg": "Verifier Address Not Found In Registry"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidVerifierAddress",
+      "msg": "Specified Verifier Address Does Not Exists"
+    },
+    {
+      "code": 6008,
+      "name": "KeyGenerationError",
+      "msg": "Key Generation Was Not Successful"
+    },
+    {
+      "code": 6009,
+      "name": "EncryptionError",
+      "msg": "Encryption of the link Is Unsuccessful!"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidCaseID",
+      "msg": "Specified Case ID Does Not Exist"
+    },
+    {
+      "code": 6011,
+      "name": "VerifierAlreadyVoted",
+      "msg": "Verifier Can Only Vote Once On A Case"
+    },
+    {
+      "code": 6012,
+      "name": "OverflowError",
+      "msg": "Possible Overflow Error Detected"
+    },
+    {
+      "code": 6013,
+      "name": "UnderflowError",
+      "msg": "Possible Underflow Error Detected"
+    },
+    {
+      "code": 6014,
+      "name": "EscrowCreationFailed",
+      "msg": "Escrow Account Creation For Patient Was Unsuccessful"
+    },
+    {
+      "code": 6015,
+      "name": "EscrowNotExist",
+      "msg": "Escrow Account For Case Does Not Exist"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidEscrowPDA",
+      "msg": "Escrow Account Verification With Passed Account Failed"
+    },
+    {
+      "code": 6017,
+      "name": "NonZeroAmount",
+      "msg": "Cannot Donate A Zero Amount"
+    },
+    {
+      "code": 6018,
+      "name": "DonationsExceeded",
+      "msg": "Donations Exceeds Total Needed Treatment Amount: Thank You"
+    },
+    {
+      "code": 6019,
+      "name": "InsufficientBalance",
+      "msg": "Balance In Lamports Is Not Enough: Specify Lesser Amount"
+    },
+    {
+      "code": 6020,
+      "name": "InsufficientRentBalance",
+      "msg": "Balance In Lamports To Rent Account Is Not Sufficient"
+    },
+    {
+      "code": 6021,
+      "name": "UnverifiedCase",
+      "msg": "Donations Cannot Be Made To Unverified Cases"
+    },
+    {
+      "code": 6022,
+      "name": "CaseNotYetVerified",
+      "msg": "Patient Case Has Not Yet Been Verified"
+    },
+    {
+      "code": 6023,
+      "name": "NotEnoughVerifiers",
+      "msg": "Not Enough Verifiers Have Voted On The Case"
+    },
+    {
+      "code": 6024,
+      "name": "CasePassedApproval",
+      "msg": "The 70% Approval Threshold Was Passed"
+    },
+    {
+      "code": 6025,
+      "name": "CaseFullyFunded",
+      "msg": "Case Has Been Fully Funded: No Need For Further Donations"
+    }
+  ],
+  "types": [
+    {
+      "name": "AddingNewVerifier",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "message",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Administrator",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin_pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CaseCounter",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "current_id",
+            "type": "u64"
+          },
+          {
+            "name": "counter_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CaseIDLookup",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "case_id_in_lookup",
+            "type": "string"
+          },
+          {
+            "name": "patient_pda",
+            "type": "pubkey"
+          },
+          {
+            "name": "patient_address",
+            "type": "pubkey"
+          },
+          {
+            "name": "case_lookup_bump",
+            "type": "u8"
+          },
+          {
+            "name": "patient_escrow_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CloseRejectedPatientCase",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "name": "case_id",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DonationsMade",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "name": "donor_address",
+            "type": "pubkey"
+          },
+          {
+            "name": "donated_amount",
+            "type": "u64"
+          },
+          {
+            "name": "case_id",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DonorInfo",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "donor_address",
+            "type": "pubkey"
+          },
+          {
+            "name": "donor_bump",
+            "type": "u8"
+          },
+          {
+            "name": "total_donations",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalRegistryInitializeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "message",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitializeAdmin",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin_address",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "active_status",
+            "type": "bool"
+          },
+          {
+            "name": "message",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PatientCase",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "patient_pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "case_description",
+            "type": "string"
+          },
+          {
+            "name": "total_amount_needed",
+            "type": "u64"
+          },
+          {
+            "name": "total_raised",
+            "type": "u64"
+          },
+          {
+            "name": "case_id",
+            "type": "string"
+          },
+          {
+            "name": "verification_yes_votes",
+            "type": "u8"
+          },
+          {
+            "name": "voted_verifiers",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "verification_no_votes",
+            "type": "u8"
+          },
+          {
+            "name": "is_verified",
+            "type": "bool"
+          },
+          {
+            "name": "patient_case_bump",
+            "type": "u8"
+          },
+          {
+            "name": "case_funded",
+            "type": "bool"
+          },
+          {
+            "name": "link_to_records",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PatientCaseSubmission",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "case_id",
+            "type": "string"
+          },
+          {
+            "name": "total_needed_amount",
+            "type": "u64"
+          },
+          {
+            "name": "total_raised",
+            "type": "u64"
+          },
+          {
+            "name": "link_to_records",
+            "type": "string"
+          },
+          {
+            "name": "is_verified",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PatientCaseVerificationStatus",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "name": "case_id",
+            "type": "string"
+          },
+          {
+            "name": "is_verified",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReleaseOfFunds",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "name": "treatment_address",
+            "type": "pubkey"
+          },
+          {
+            "name": "transferred_amount",
+            "type": "u64"
+          },
+          {
+            "name": "case_id",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RemovingExistingVerifier",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "message",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Verifier",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "verifier_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_verifier",
+            "type": "bool"
+          },
+          {
+            "name": "verifier_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VerifierOperationType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Add"
+          },
+          {
+            "name": "Remove"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VerifiersList",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "all_verifiers",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "verifier_registry_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}
