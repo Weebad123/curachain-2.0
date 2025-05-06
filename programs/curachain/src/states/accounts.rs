@@ -1,3 +1,5 @@
+use std::u8;
+
 use anchor_lang::prelude::*;
 
 use crate::states::errors::*;
@@ -11,6 +13,21 @@ pub struct Administrator {
     pub is_active: bool,
 
     pub bump: u8,
+}
+
+
+// CREATE THE MULTISIG ACCOUNT HERE
+#[account]
+#[derive(InitSpace)]
+pub struct Multisig {
+    pub multisig_admin: Pubkey,
+
+    #[max_len(5)]
+    pub multisig_members: Vec<Pubkey>,
+
+    pub required_threshold: u8,
+
+    pub multisig_bump: u8
 }
 
 
@@ -33,14 +50,17 @@ pub struct PatientCase {
 
     pub total_amount_needed: u64,
 
-    pub total_raised: u64,
+    pub total_sol_raised: u64,
+
+    #[max_len(20)]
+    pub spl_donations: Vec<SplDonations>,
 
     #[max_len(10)]
     pub case_id: String,
     
     pub verification_yes_votes:u8,
     // list of voted verifiers on a case
-    #[max_len(50)]
+    #[max_len(25)]
     pub voted_verifiers: Vec<Pubkey>,
 
     pub verification_no_votes: u8,
@@ -53,6 +73,13 @@ pub struct PatientCase {
 
     #[max_len(64)]
     pub link_to_records: String,
+}
+
+#[derive(AnchorDeserialize, AnchorSerialize, Clone, InitSpace, PartialEq, Copy)]
+pub struct SplDonations {
+    pub mint: Pubkey,
+
+    pub total_mint_amount: u64,
 }
 
 
@@ -112,6 +139,31 @@ impl VerifiersList {
     }
 }
 
+
+// CREATE A TRANSFER PROPOSAL HERE
+#[account]
+#[derive(InitSpace)]
+pub struct Proposal {
+    #[max_len(10)]
+    pub case_id: String,
+
+    pub proposal_index: u64,
+
+    #[max_len(5)]
+    pub voted_multisig: Vec<MultisigApprovals>,
+
+    pub approved: bool,
+
+    pub proposal_bump: u8,
+}
+
+
+#[derive(AnchorDeserialize, AnchorSerialize, InitSpace, Clone, Copy)]
+pub struct MultisigApprovals {
+    pub multisig_member: Pubkey,
+
+    pub approval: bool,
+}
 // CREATE A DONOR INFO PDA HERE
 #[account]
 #[derive(InitSpace)]
@@ -121,5 +173,8 @@ pub struct DonorInfo {
     pub donor_bump: u8,
 
     pub total_donations: u64,
+
+    #[max_len(1000)]
+    pub donated_cases: Vec<[u8;8]>,
 }
    

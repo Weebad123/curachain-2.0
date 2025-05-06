@@ -6,6 +6,7 @@ pub mod verify_patient_case;
 pub mod donate_funds;
 pub mod verifiers_operations;
 pub mod close_rejected_case;
+pub mod multisig_operations;
 
  
 pub use create_patient_case::*;
@@ -16,3 +17,4 @@ pub use release_funds::*;
 pub use verify_patient_case::*;
 pub use verifiers_operations::*;
 pub use close_rejected_case::*;
+pub use multisig_operations::*;

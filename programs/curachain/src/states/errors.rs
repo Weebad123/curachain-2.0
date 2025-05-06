@@ -27,11 +27,14 @@ pub enum CuraChainError{
     #[msg("Specified Verifier Address Does Not Exists")]
     InvalidVerifierAddress,
 
-    #[msg("Key Generation Was Not Successful")]
-    KeyGenerationError,
+    #[msg("There Can Be Maximum Of 5 Multisig members")]
+    TooManyMembers,
 
-    #[msg("Encryption of the link Is Unsuccessful!")]
-    EncryptionError,
+    #[msg("Specified Signer Already Part Of Multisig")]
+    SignerAlreadyExists,
+
+    #[msg("Specified Signer Is Not Part Of Multisig")]
+    NotMultisigMember,
 
     #[msg("Specified Case ID Does Not Exist")]
     InvalidCaseID,
@@ -57,11 +60,20 @@ pub enum CuraChainError{
     #[msg("Cannot Donate A Zero Amount")]
     NonZeroAmount,
 
+    #[msg("Specified Token Does Not Match Donation Token")]
+    TokenMismatched,
+
     #[msg("Donations Exceeds Total Needed Treatment Amount: Thank You")]
     DonationsExceeded,
 
     #[msg("Balance In Lamports Is Not Enough: Specify Lesser Amount")]
     InsufficientBalance,
+
+    #[msg("No Donations Made To Specified Case")]
+    NoDonationsMade,
+
+    #[msg("Metadata Collection Does Not Match Specified Collection")]
+    InvalidCollectionMint,
 
     #[msg("Balance In Lamports To Rent Account Is Not Sufficient")]
     InsufficientRentBalance,
@@ -74,6 +86,21 @@ pub enum CuraChainError{
 
     #[msg("Not Enough Verifiers Have Voted On The Case")]
     NotEnoughVerifiers,
+
+    #[msg("No Transfer Proposal Initiated For Case")]
+    NoProposalMade,
+
+    #[msg("No Proposal With Such Index Exists")]
+    InvalidProposalIndex,
+
+    #[msg("Proposal Has Not Been Approved By Multisig")]
+    ProposalNotApproved,
+
+    #[msg("Multisig Member Has Already Voted On Case")]
+    MultisigMemberVoted,
+
+    #[msg("Only Admin Or Multisig Member Can Initiate Funds Release")]
+    UnauthorizedToTransfer,
 
     #[msg("The 70% Approval Threshold Was Passed")]
     CasePassedApproval,

@@ -1,20 +1,19 @@
 [toolchain]
+anchor_version = "0.31.1"
+solana_version = "2.1.0"
 
 [features]
 resolution = true
 skip-lint = false
 
-[programs.devnet]
-curachain = "FRM52RYMbEqwb4WuBv6E7aiHv16acVZ1wBYaNRDYsnoh"
-
 [programs.localnet]
-curachain = "ACVeDFAirffL1Tx3QggFewJWajywkpXApJsknyrML57r"
+curachain = "4t7Agar7zuPB4o6mit6jijt6RMuRdKtqE8FYRybApbBj"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Devnet"
+cluster = "localnet"
 wallet = "./turbin3-wallet.json"
 
 [scripts]

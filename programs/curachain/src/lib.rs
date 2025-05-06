@@ -6,7 +6,7 @@ pub mod states;
 use instructions::*;
 use states::*;
 
-declare_id!("FRM52RYMbEqwb4WuBv6E7aiHv16acVZ1wBYaNRDYsnoh");
+declare_id!("4t7Agar7zuPB4o6mit6jijt6RMuRdKtqE8FYRybApbBj");
 
 #[program]
 pub mod curachain {
@@ -19,8 +19,8 @@ pub mod curachain {
     }
 
 
-    // Initialize The Global Verifiers Registry List And Case Counter
-    pub fn initialize_global_verifiers_list_and_case_counter(ctx: Context<InitializeVerifiersRegistryAndCaseCounter>) -> Result<()> {
+    // Initialize The Global Verifiers Registry List, Multisig And Case Counter
+    pub fn initialize_global_verifiers_list_and_case_counter(ctx: Context<InitializeVerifiersRegistryMultisigAndCaseCounter>) -> Result<()> {
 
         instructions::verifiers_operations::initialize_verifiers_list(ctx)?;
 
@@ -39,6 +39,14 @@ pub mod curachain {
                 instructions::verifiers_operations::remove_verifier(ctx, verifier)?;
             }
         }
+        Ok(())
+    }
+
+
+    // Update Multisig Here
+    pub fn update_multisig(ctx: Context<AddorRemoveMultisigMember>, member_addresses: Vec<Pubkey>, multisig_op_type: MultisigOperationType) -> Result<()> {
+
+        instructions::multisig_operations::add_or_remove_members(ctx, member_addresses, multisig_op_type)?;
         Ok(())
     }
 
@@ -77,17 +85,31 @@ pub mod curachain {
     }
 
     // Donors Make Donations To Patient's Escrow Accounts.
-    pub fn donate(ctx: Context<Donation>, case_id: String, amount_to_donate: u64) -> Result<()> {
+    pub fn donate(ctx: Context<Donation>, case_id: String, donation_token: Pubkey, amount_to_donate: u64, nft_uri: String) -> Result<()> {
 
-        instructions::donate_funds_to_patient_escrow(ctx, case_id, amount_to_donate)?;
+        instructions::donate_funds_to_patient_escrow(ctx, case_id, donation_token, amount_to_donate, nft_uri)?;
 
         Ok(())
     }
 
-    // AUTHORIZED MULTISIG TRANSFERS ACCUMULATED FUNDS TO TREATMENT WALLET 
-    pub fn release_funds(ctx: Context<ReleaseFunds>, case_id: String) -> Result<()> {
+    // AUTHORIZED MULTISIG MEMBER MAKES A PROPOSAL TO TRANSFER A CASE DONATED FUNDS TO TREATMENT WALLET
+    pub fn propose_transfer(ctx: Context<ProposeFundRelease>, case_id: String, proposal_index: u64) -> Result<()> {
 
-        instructions::release_funds(ctx, case_id)?;
+        instructions::propose_funds_release(ctx, case_id, proposal_index)?;
+        Ok(())
+    }
+
+    // AUTHORIZED MULTISIG MEMBER CAN APPROVE PROPOSAL
+    pub fn approve_proposal(ctx: Context<ApproveProposal>, case_id: String, proposal_index: u64, approval: bool) -> Result<()> {
+
+        instructions::proposal_approve(ctx, case_id, proposal_index, approval)?;
+        Ok(())
+    }
+
+    // AUTHORIZED MULTISIG TRANSFERS ACCUMULATED FUNDS TO TREATMENT WALLET 
+    pub fn release_funds(ctx: Context<ReleaseFunds>, case_id: String, proposal_index: u64) -> Result<()> {
+
+        instructions::release_funds(ctx, case_id, proposal_index)?;
 
         Ok(())
     }

@@ -136,7 +136,7 @@ describe("curachain", () => {
                                             CASE COUNTER  TEST
                                                                         ................. */
   // LET'S WRITE A TEST TO INITIALIZE THE VERIFIERS GLOBAL REGISTRY AND CASE COUNTER
-  it("TEST 2 ::::: Admin Initializing The Global Registry Of Verifiers And Case ID Counter for Patients Submissions!!!", async () => {
+  it("TEST 2 ::::: Admin Initializing The Global Registry Of Verifiers, Multisig And Case ID Counter for Patients Submissions!!!", async () => {
     //
 
     const [adminPDA, adminBump] = PublicKey.findProgramAddressSync(
@@ -149,6 +149,11 @@ describe("curachain", () => {
         [Buffer.from("verifiers_list")],
         program.programId
       );
+
+    const [multisgPDA, multisgBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("multisig"), Buffer.from("escrow-authority")],
+      program.programId
+    );
 
     const [caseCounterPDA, caseCounterBump] = PublicKey.findProgramAddressSync(
       [Buffer.from("case_counter")],
@@ -165,6 +170,7 @@ describe("curachain", () => {
         //@ts-ignore
         adminAccount: adminPDA,
         verifiersList: verifiersRegistryPDA,
+        multisig: multisgPDA,
         caseCounter: caseCounterPDA,
       })
       .signers([newAdmin])
@@ -176,6 +182,16 @@ describe("curachain", () => {
     );
 
     expect(globalVerifiersListData.allVerifiers.length).to.equal(0);
+
+    // Let's Fetch The Multisig and Make Assertions
+    const multisigData = await program.account.multisig.fetch(
+      multisgPDA
+    );
+
+    expect(multisigData.multisigAdmin).to.deep.eq(newAdmin);
+    expect(multisigData.requiredThreshold).to.equal(3);
+    expect(multisigData.multisigBump).to.equal(multisgBump);
+    expect(multisigData.multisigMembers.length).to.eq(0);
 
     // Let's Fetch The Global Case Counter and Make Assertions
     const caseCounterData = await program.account.caseCounter.fetch(
@@ -560,7 +576,7 @@ describe("curachain", () => {
     expect(patient1CaseData.verificationNoVotes).to.eq(0);
     expect(patient1CaseData.isVerified).to.be.false;
     expect(patient1CaseData.totalAmountNeeded.toNumber()).to.eq(20000);
-    expect(patient1CaseData.totalRaised.toNumber()).to.eq(0);
+    expect(patient1CaseData.totalSolRaised.toNumber()).to.eq(0);
 
     // Let's Make Assertions For Patient 2 Here
     expect(patient2CaseData.caseId.toString()).to.eq("CASE0002");
@@ -571,7 +587,7 @@ describe("curachain", () => {
     expect(patient2CaseData.verificationNoVotes).to.eq(0);
     expect(patient2CaseData.isVerified).to.be.false;
     expect(patient2CaseData.totalAmountNeeded.toNumber()).to.eq(50000);
-    expect(patient2CaseData.totalRaised.toNumber()).to.eq(0);
+    expect(patient2CaseData.totalSolRaised.toNumber()).to.eq(0);
 
     // Let's Make Assertions For Patient 3 Here
     expect(patient3CaseData.caseId.toString()).to.eq("CASE0003");
@@ -582,7 +598,7 @@ describe("curachain", () => {
     expect(patient3CaseData.verificationNoVotes).to.eq(0);
     expect(patient3CaseData.isVerified).to.be.false;
     expect(patient3CaseData.totalAmountNeeded.toNumber()).to.eq(100000);
-    expect(patient3CaseData.totalRaised.toNumber()).to.eq(0);
+    expect(patient3CaseData.totalSolRaised.toNumber()).to.eq(0);
   });
 
   /*       .....................       VERIFICATION        TESTS
@@ -1207,6 +1223,7 @@ describe("curachain", () => {
       await program.provider.connection.getMinimumBalanceForRentExemption(0);
 
     // Let's let Donor 1 Call Donate Instructions
+    const donationToken = new PublicKey()
     await program.methods
       .donate("CASE0001", new BN(15000))
       .accounts({

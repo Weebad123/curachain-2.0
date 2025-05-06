@@ -265,8 +265,8 @@ const verify5Patient4Case = async () => {
 };
 
 // Call The Below Function one after the other by commenting the others:
-verify1Patient4Case();
-verify2Patient4Case();
-verify3Patient4Case();
-verify4Patient4Case();
+//verify1Patient4Case();
+//verify2Patient4Case();
+//verify3Patient4Case();
+//verify4Patient4Case();
 verify5Patient4Case();
