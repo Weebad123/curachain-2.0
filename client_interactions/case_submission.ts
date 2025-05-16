@@ -34,6 +34,7 @@ function loadWallet(name: string): Keypair {
 const patient2keypair = loadWallet("patient2");
 const patient3keypair = loadWallet("patient2");
 const patient4keypair = loadWallet("patient4");
+const patient1keypair = loadWallet("patient1");
 
 // Load wallet from keypair file
 // Replace with path to your keypair file
@@ -144,4 +145,46 @@ const patient4SubmitCase = async () => {
 };
 
 // let's call the patient 4 function here
-patient4SubmitCase();
+//patient4SubmitCase();
+
+// Let Patient 1
+const patient3SubmitCase = async () => {
+  // Let's skip the pdas derivation here
+
+  try {
+    const [caseCounterPDA, caseCounterBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("case_counter")],
+      programID
+    );
+
+    const counterData = await program.account.caseCounter.fetch(caseCounterPDA);
+    const incrementid = counterData.currentId.add(new BN(1));
+    const caseId = "CASE" + incrementid.toString().padStart(5, "0");
+
+    const [caseLookupPDA, caseLookupBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("case_lookup"), Buffer.from(caseId)],
+      programID
+    );
+    const patient3tx = await program.methods
+      .submitCases(
+        "Suffering from Kidney Dialysis for 1 years now. Doctors diagnosis suggests I undergo the prophylactic treatment, which costs about 20,000 dollars every month. Please Kindly contribute towards my treatment.",
+        new BN(1000000000),
+        "https://dropbox.com/facony22/medical_files/1yzZjuzQfxStj2LQP6_Yp6jquVnjT8qX-u?usp=sharing"
+      )
+      .accounts({
+        patient: patient3keypair.publicKey,
+        //@ts-ignore
+        caseLookup: caseLookupPDA,
+      })
+      .signers([patient3keypair])
+      .rpc();
+
+    console.log(
+      "View Patient Case Submission transaction on Solana Explorer here",
+      `https://explorer.solana.com/tx/${patient3tx}?cluster=devnet`
+    );
+  } catch (err) {
+    console.log(err);
+  }
+};
+patient3SubmitCase();

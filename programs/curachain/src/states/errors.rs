@@ -99,8 +99,26 @@ pub enum CuraChainError{
     #[msg("Multisig Member Has Already Voted On Case")]
     MultisigMemberVoted,
 
+    #[msg("Lengths of Mints In Spl Donations And Remaining Accounts Differ")]
+    InvalidMintsLength,
+
+    #[msg("Created Facility Atas Donot Match")]
+    MismatchedFacilityAtas,
+
+    #[msg("Specified Mint Is Incorrect In Remaining Accounts")]
+    InvalidRemainingMints,
+
+    #[msg("Specified Patient Vault Is Incorrect In Remaining Accounts")]
+    InvalidRemainingVaults,
+
     #[msg("Only Admin Or Multisig Member Can Initiate Funds Release")]
     UnauthorizedToTransfer,
+
+    #[msg("Previous Metadata Info Is Invalid")]
+    InvalidMetadata,
+
+    #[msg("Derived Token Vaults Mismatch With Stored Token Vaults")]
+    MismatchedTokenVaults,
 
     #[msg("The 70% Approval Threshold Was Passed")]
     CasePassedApproval,

@@ -3,7 +3,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken, 
-    metadata::{Metadata, MetadataAccount, MasterEditionAccount}, 
+    metadata::{ MasterEditionAccount, Metadata, MetadataAccount}, 
     token_interface::{ Mint, TokenAccount, TokenInterface}};
 
 use crate::states::{accounts::*, errors::*};
@@ -69,6 +69,77 @@ pub struct VerifierInfo<'info> {
     pub system_program: Program<'info, System>,
 }
 
+
+// INITIALIZING OUR NFT COLLECTION MINT SO EACH REGULAR NFTS MINTED TO DONORS CAN BE VERIFIED AGAINST THIS
+#[derive(Accounts)]
+pub struct InitializeNftCollection<'info> {
+    #[account(
+        mut,
+        constraint = admin.key() == admin_account.admin_pubkey.key() @ CuraChainError::OnlyAdmin,
+    )]
+    pub admin: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"multisig", b"escrow-authority".as_ref()],
+        bump = multisig.multisig_bump
+    )]
+    pub multisig: Box<Account<'info, Multisig>>,
+
+    #[account(
+        mut,
+        seeds = [b"admin", admin.key().as_ref()],
+        bump = admin_account.bump
+    )]
+    pub admin_account: Account<'info, Administrator>,
+
+    #[account(mut)]
+    pub parent_collection_mint: InterfaceAccount<'info, Mint>,
+
+    #[account(
+        mut,
+        seeds =[
+            b"metadata",
+            metadata_program.key().as_ref(),
+            parent_collection_mint.key().as_ref()
+        ],
+        seeds::program = metadata_program.key(),
+        bump,
+        //constraint = parent_collection_nft_metadata.mint.as_ref() == parent_collection_mint.key().as_ref() @CuraChainError::InvalidCollectionMint,
+    )]
+    /// CHECK: Initialized Via Metaplex CPI
+    pub parent_collection_nft_metadata: UncheckedAccount<'info>,
+
+    #[account(
+        mut,
+        seeds =[
+            b"metadata",
+            metadata_program.key().as_ref(),
+            parent_collection_mint.key().as_ref(),
+            b"edition",
+        ],
+        seeds::program = metadata_program.key(),
+        bump,
+    )]
+    /// CHECK: Initialized Via Metaplex CPI
+    pub parent_collection_master_edition: UncheckedAccount<'info>,
+
+    pub metadata_program: Program<'info, Metadata>,
+    /// CHECK: This is the Token Metadata Program From Metaplex
+    /*#[account(
+        address = mpl_token_metadata::ID,
+    )]
+    pub metadata_program: UncheckedAccount<'info>,*/
+
+    pub associated_token_program: Program<'info, AssociatedToken>,
+
+    pub token_program: Interface<'info, TokenInterface>,
+
+    pub system_program: Program<'info, System>,
+
+    pub rent: Sysvar<'info, Rent>,
+
+}
 
 
 
@@ -311,6 +382,59 @@ pub struct ClosePatientCase<'info> {
 
 
 
+// DONOR'S CONTEXT STRUCT
+#[derive(Accounts)]
+#[instruction(case_id: String)]
+pub struct SolDonation<'info> {
+    #[account(mut)]
+    pub donor: Signer<'info>,
+
+    // Donor Info PDA here
+    #[account(
+        init_if_needed,
+        payer = donor,
+        seeds = [b"donor", donor.key().as_ref()],
+        bump,
+        space = 8 + DonorInfo::INIT_SPACE,
+    )]
+    pub donor_account: Account<'info, DonorInfo>,
+
+    // Get Case Lookup pda using specified Case ID
+    #[account(
+        mut,
+        seeds = [b"case_lookup", case_id.as_bytes()],
+        bump = case_lookup.case_lookup_bump,
+        constraint = case_lookup.case_id_in_lookup == case_id @CuraChainError::InvalidCaseID,
+    )]
+    pub case_lookup: Account<'info, CaseIDLookup>,
+
+    // We Use the case_lookup to find the Patient case
+    #[account(
+        mut,
+        seeds = [b"patient", case_lookup.patient_address.as_ref()],
+        bump = patient_case.patient_case_bump,
+        constraint = patient_case.key() == case_lookup.patient_pda.key() @ CuraChainError::InvalidCaseID,
+        constraint = patient_case.case_id == case_id @ CuraChainError::InvalidCaseID,
+    )]
+    pub patient_case: Account<'info, PatientCase>,
+
+    /// CHECKED: This account has already been created and it's safe now. 
+    #[account(
+        mut,
+        //seeds = [b"patient_escrow", patient_case.case_id.as_bytes() ,patient_case.key().as_ref(),],
+        //bump = case_lookup.patient_escrow_bump,
+    )]
+    pub patient_escrow: AccountInfo<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"multisig", b"escrow-authority".as_ref()],
+        bump = multisig.multisig_bump
+    )]
+    pub multisig: Account<'info, Multisig>,
+
+    pub system_program: Program<'info, System>,
+}
 
 /*
 @. 1. Donor Can Donate Any Preferred token to a particular case
@@ -320,17 +444,24 @@ pub struct ClosePatientCase<'info> {
 
 // DONOR'S CONTEXT STRUCT
 #[derive(Accounts)]
-#[instruction(case_id: String, token_to_donate: Pubkey)]
-pub struct Donation<'info> {
+#[instruction(case_id: String)]
+pub struct SplDonation<'info> {
     #[account(mut)]
     pub donor: Signer<'info>,
 
+    // Donor Info PDA here
     #[account(
-        constraint = donation_token.key() == token_to_donate @CuraChainError::TokenMismatched
+        init_if_needed,
+        payer = donor,
+        seeds = [b"donor", donor.key().as_ref()],
+        bump,
+        space = 8 + DonorInfo::INIT_SPACE,
     )]
+    pub donor_account: Account<'info, DonorInfo>,
+
     pub donation_token: InterfaceAccount<'info, Mint>,
 
-    // Donor ATA
+    // Donor ATA From Which To Donate Token
     #[account(
         mut,
         associated_token::mint = donation_token,
@@ -377,7 +508,7 @@ pub struct Donation<'info> {
         ],
         bump,
         token::authority = multisig,
-        token::mint = donation_token
+        token::mint = donation_token// Not using associated_token::mint and authority because of customized seeds
     )]
     pub patient_token_vault: InterfaceAccount<'info, TokenAccount>,
 
@@ -388,6 +519,36 @@ pub struct Donation<'info> {
     )]
     pub multisig: Account<'info, Multisig>,
 
+    
+    pub associated_token_program: Program<'info, AssociatedToken>,
+
+    pub token_program: Interface<'info, TokenInterface>,
+
+    pub system_program: Program<'info, System>,
+
+    pub rent: Sysvar<'info, Rent>,
+}
+
+
+#[derive(Accounts)]
+#[instruction(case_id: String)]
+pub struct MintNFT<'info> {
+    #[account(mut)]
+    pub donor: Signer<'info>,
+
+    #[account(
+        mut,
+        constraint = admin.key() == admin_account.admin_pubkey.key() @ CuraChainError::OnlyAdmin,
+    )]
+    pub admin: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"admin", admin.key().as_ref()],
+        bump = admin_account.bump
+    )]
+    pub admin_account: Account<'info, Administrator>,
+
     // Donor Info PDA here
     #[account(
         init_if_needed,
@@ -396,11 +557,44 @@ pub struct Donation<'info> {
         bump,
         space = 8 + DonorInfo::INIT_SPACE,
     )]
-    pub donor_account: Account<'info, DonorInfo>,
+    pub donor_account: Box<Account<'info, DonorInfo>>,
+    
+    #[account(
+        mut,
+        seeds = [b"multisig", b"escrow-authority".as_ref()],
+        bump = multisig.multisig_bump
+    )]
+    pub multisig: Box<Account<'info, Multisig>>,
 
     // RECOGNITION NFT LOGIC
     // Recognition Collection NFT for Curachain ----- Assumes Program's NFT Recognition Has Been Minted
-    pub recognition_collection_nft: InterfaceAccount<'info, Mint>,
+    pub parent_recognition_collection_nft: InterfaceAccount<'info, Mint>,
+
+    // donor nft is a regular nft, verified to belong to the collection nft of curachain
+    #[account(
+        mut,
+        seeds =[
+            b"metadata",
+            metadata_program.key().as_ref(),
+            parent_recognition_collection_nft.key().as_ref()
+        ],
+        seeds::program = metadata_program.key(),
+        bump,
+    )]
+    pub parent_collection_nft_metadata: Account<'info, MetadataAccount>,
+
+    #[account(
+        mut,
+        seeds =[
+            b"metadata",
+            metadata_program.key().as_ref(),
+            parent_recognition_collection_nft.key().as_ref(),
+            b"edition",
+        ],
+        seeds::program = metadata_program.key(),
+        bump,
+    )]
+    pub parent_collection_master_edition: Account<'info, MasterEditionAccount>,
 
     // Create A Child Mint For Each Donor-Case
     #[account(
@@ -409,9 +603,10 @@ pub struct Donation<'info> {
         seeds = [b"recognition_nft", donor.key().as_ref(), case_id.as_bytes()],
         bump,
         mint::decimals = 0,
-        mint::authority = multisig
+        mint::authority = multisig,
+        mint::freeze_authority = multisig,
     )]
-    pub donor_nft_mint: InterfaceAccount<'info, Mint>,
+    pub donor_nft_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
         init_if_needed,
@@ -422,7 +617,9 @@ pub struct Donation<'info> {
     pub donor_nft_account: InterfaceAccount<'info, TokenAccount>,
 
     // donor nft is a regular nft, verified to belong to the collection nft of curachain
+    /// CHECK: Initialized Via Metaplex CPI, so safe
     #[account(
+        mut,
         seeds =[
             b"metadata",
             metadata_program.key().as_ref(),
@@ -430,13 +627,12 @@ pub struct Donation<'info> {
         ],
         seeds::program = metadata_program.key(),
         bump,
-        constraint = donor_nft_metadata.collection.as_ref().unwrap().key.as_ref() == donor_nft_mint.key().as_ref() @CuraChainError::InvalidCollectionMint,
-        constraint = donor_nft_metadata.collection.as_ref().unwrap().verified,
-        constraint = donor_nft_metadata.collection_details == None,
     )]
-    pub donor_nft_metadata: Account<'info, MetadataAccount>,
+    pub donor_nft_metadata: UncheckedAccount<'info>,
 
+    /// CHECK: Initialized Via Metaplex CPI, so safe
     #[account(
+        mut,
         seeds =[
             b"metadata",
             metadata_program.key().as_ref(),
@@ -446,7 +642,7 @@ pub struct Donation<'info> {
         seeds::program = metadata_program.key(),
         bump,
     )]
-    pub master_edition: Account<'info, MasterEditionAccount>,
+    pub master_edition: UncheckedAccount<'info>,
 
     pub metadata_program: Program<'info, Metadata>,
 
@@ -455,6 +651,8 @@ pub struct Donation<'info> {
     pub token_program: Interface<'info, TokenInterface>,
 
     pub system_program: Program<'info, System>,
+
+    pub rent: Sysvar<'info, Rent>,
 }
 
 

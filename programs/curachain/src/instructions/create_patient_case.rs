@@ -38,7 +38,7 @@ pub fn initialize_patient(
 
     
 
-    // Clone values to avoid rust ownership errors
+    // Clone values to for event emission
     let case_description_clone = case_description.clone();
     let patient_case_id_clone = patient_case_id.clone();
     let raw_records_link_clone = link_to_records.clone();

@@ -80,6 +80,8 @@ pub struct SplDonations {
     pub mint: Pubkey,
 
     pub total_mint_amount: u64,
+
+    pub patient_token_vault: Pubkey,
 }
 
 

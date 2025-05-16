@@ -22,6 +22,7 @@ custom-panic = []
 [dependencies]
 # proc-macro2 = "1.0.95"
 anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
-anchor-spl = { version = "0.31.1", features = ["metadata"]}
+anchor-spl = { version = "0.31.1", features = ["metadata"] }
+
 
 

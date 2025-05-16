@@ -84,11 +84,32 @@ pub mod curachain {
         Ok(())
     }
 
-    // Donors Make Donations To Patient's Escrow Accounts.
-    pub fn donate(ctx: Context<Donation>, case_id: String, donation_token: Pubkey, amount_to_donate: u64, nft_uri: String) -> Result<()> {
+    // Donors Make Spl/Token Donations To Patient's Token Accounts.
+    pub fn donate_token(ctx: Context<SplDonation>, case_id: String, donation_token: Pubkey, amount_to_donate: u64) -> Result<()> {
 
-        instructions::donate_funds_to_patient_escrow(ctx, case_id, donation_token, amount_to_donate, nft_uri)?;
+        instructions::donate_spl(ctx, case_id, donation_token, amount_to_donate)?;
 
+        Ok(())
+    }
+
+    // Donors Make Sol Donations To Patient's Escrow Accounts.
+    pub fn donate_sol(ctx: Context<SolDonation>, case_id: String, amount_to_donate: u64) -> Result<()> {
+
+        instructions::donate(ctx, case_id, amount_to_donate)?;
+        Ok(())
+    }
+
+    // ADMINISTRATOR/MULTISIG CREATES THE CURACHAIN COLLECTION NFT ON-CHAIN
+    pub fn create_nft_collection(ctx: Context<InitializeNftCollection>, nft_uri: String) -> Result<()> {
+
+        instructions::init_nft_collection(ctx, nft_uri)?;
+        Ok(())
+    }
+
+    // MINT RECOGNITION NFTS TO DONORS 
+    pub fn mint_nft(ctx: Context<MintNFT>, case_id: String, nft_uri: String) -> Result<()> {
+
+        instructions::nft_mint(ctx, case_id, nft_uri)?;
         Ok(())
     }
 
@@ -107,7 +128,7 @@ pub mod curachain {
     }
 
     // AUTHORIZED MULTISIG TRANSFERS ACCUMULATED FUNDS TO TREATMENT WALLET 
-    pub fn release_funds(ctx: Context<ReleaseFunds>, case_id: String, proposal_index: u64) -> Result<()> {
+    pub fn release_funds<'info>(ctx: Context<'_, '_, '_, 'info, ReleaseFunds<'info>>, case_id: String, proposal_index: u64) -> Result<()> {
 
         instructions::release_funds(ctx, case_id, proposal_index)?;
 
