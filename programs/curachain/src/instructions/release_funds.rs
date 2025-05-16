@@ -4,20 +4,10 @@ use anchor_spl::{associated_token::{create_idempotent, get_associated_token_addr
 use crate::states::{contexts::*, errors::*, ReleaseOfFunds};
 
 pub fn release_funds<'info>(ctx: Context<'_, '_, '_, 'info, ReleaseFunds<'info>>, case_id: String, proposal_index: u64) -> Result<()> {
-    // Let's get the necessary accounts
-    //let patient_escrow = &mut ctx.accounts.patient_escrow;
-    //let patient_case = &mut ctx.accounts.patient_case;
-    //let transfer_authority = &ctx.accounts.transfer_authority;
-
-    //let treatment_address = &mut ctx.accounts.facility_address;
-    //let system_program = &ctx.accounts.system_program;
-    //let token_program = &ctx.accounts.token_program;
-    //let case_lookup = &ctx.accounts.case_lookup;
-
-    //let proposal = &ctx.accounts.proposal;
-
-    // ENSURE PROPOSAL IS APPROVED
+   
+    // ENSURE RELEASE PROPOSAL IS APPROVED
     require!(ctx.accounts.proposal.approved == true, CuraChainError::ProposalNotApproved);
+    require!(ctx.accounts.proposal.executed == false, CuraChainError::ProposalAlreadyExecuted);
     require!(ctx.accounts.proposal.case_id == case_id, CuraChainError::NoProposalMade);
     require!(ctx.accounts.proposal.proposal_index == proposal_index, CuraChainError::InvalidProposalIndex);
 
@@ -28,22 +18,9 @@ pub fn release_funds<'info>(ctx: Context<'_, '_, '_, 'info, ReleaseFunds<'info>>
     let rent_lamports = rent.minimum_balance(0);
 
     let actual_escrow_balance;
-    let mut close_account = false;
-
-    // @dev If Case is fully funded, we'll transfer everythin including rent-exempt, 
-    // Otherwise, we will transfer everythin excluding rent-exempt
-    if ctx.accounts.patient_case.case_funded == true {
-        // transfer entire balance, and close account
-        actual_escrow_balance = total_escrow_balance;
-        // set close_account to true
-        close_account = true;
-    } else {
-        // Get Actual Escrow balance excluding Rent-exempt
-    // @dev This is to ensure the patient escrow account can continue to receive donations
-        actual_escrow_balance = total_escrow_balance.checked_sub(rent_lamports).ok_or(CuraChainError::UnderflowError)?;
-    }
-    
-
+    // We Intend To Keep Patient Escrow Even When Case Is Fully Funded;
+    // We can always close the account later
+    actual_escrow_balance = total_escrow_balance.checked_sub(rent_lamports).ok_or(CuraChainError::UnderflowError)?;
     require!(actual_escrow_balance > 0, CuraChainError::NonZeroAmount);
 
    
@@ -79,6 +56,10 @@ pub fn release_funds<'info>(ctx: Context<'_, '_, '_, 'info, ReleaseFunds<'info>>
             signer_seeds
         )?;
 
+         // Update Patient Case With This Transferred Amount Only When There Was A Sol Transfer
+        ctx.accounts.patient_case.total_sol_raised = ctx.accounts.patient_case.total_sol_raised
+            .checked_sub(actual_escrow_balance).ok_or(CuraChainError::UnderflowError)?;
+
     }
 
     // ------- SPL TOKENS TRANSFER TO TREATMENT FACILITY ATA IF THERE WERE SPL DONATIONS MADE  ------- //
@@ -97,7 +78,7 @@ pub fn release_funds<'info>(ctx: Context<'_, '_, '_, 'info, ReleaseFunds<'info>>
 
             let decimals = Mint::unpack(&token_mint_info.try_borrow_data()?)?.decimals;
 
-            let each_spl_donation = &ctx.accounts.patient_case.spl_donations[spl_donation];
+            let each_spl_donation = &mut ctx.accounts.patient_case.spl_donations[spl_donation];
 
             require!(token_mint_info.key() == each_spl_donation.mint, CuraChainError::InvalidRemainingMints);
             require!(patient_token_vault.key() == each_spl_donation.patient_token_vault, CuraChainError::InvalidRemainingVaults);
@@ -116,7 +97,7 @@ pub fn release_funds<'info>(ctx: Context<'_, '_, '_, 'info, ReleaseFunds<'info>>
 
             require!(patient_token_vault.key() == patient_vault, CuraChainError::InvalidRemainingVaults);
 
-            // For No Explicit Check, We use the `create_indempotent` function which creates the ATA if 
+            // For No Explicit Check, We use the `create_idempotent` function which creates the ATA if 
             // it doesn't exist, and does nothing if it exists, just like the init_if_needed anchor constraint
             let facility_ata = get_associated_token_address(
                 &ctx.accounts.facility_address.key(),
@@ -137,7 +118,7 @@ pub fn release_funds<'info>(ctx: Context<'_, '_, '_, 'info, ReleaseFunds<'info>>
             create_idempotent(cpi_ctx)?;
             require!(facility_token_ata.key() == facility_ata, CuraChainError::MismatchedFacilityAtas);
 
-            // Transfer 
+            // After Creating, ====>>> Make Transfer 
             let transfer_accounts = TransferChecked {
                 from: patient_token_vault.clone(),
                 mint: token_mint_info.clone(),
@@ -153,21 +134,11 @@ pub fn release_funds<'info>(ctx: Context<'_, '_, '_, 'info, ReleaseFunds<'info>>
             let multisig_seeds = &[&seeds[..]];
             let transfer_cpi = CpiContext::new_with_signer(transfer_program, transfer_accounts, multisig_seeds);
             transfer_checked(transfer_cpi, each_spl_donation.total_mint_amount, decimals)?;
+
+            // Let's Update The Accounting of spl Donations on the Patient Case
+            each_spl_donation.total_mint_amount = 0;
         }
     }
-
-    // Only Check Remaining Balance When We Are Not Closing Account
-    if !close_account {
-        // CHECK: To ensure there is still rent-exempt for the Escrow As Long As Total Amount Has Not Been Raised
-    //let final_balance_transfer = ctx.accounts.patient_escrow.lamports();
-    //require!(final_balance_transfer >= rent_lamports, 
-        //CuraChainError::InsufficientRentBalance);
-    }
-    
-
-    // Update Patient Case With This Transferred Amount
-    ctx.accounts.patient_case.total_sol_raised = ctx.accounts.patient_case.total_sol_raised
-        .checked_sub(actual_escrow_balance).ok_or(CuraChainError::UnderflowError)?;
 
     // For total_amount_needed, only subtract the minimum of (actual_escrow_balance, total_amount_needed) to
     // prevent underflow
@@ -180,16 +151,8 @@ pub fn release_funds<'info>(ctx: Context<'_, '_, '_, 'info, ReleaseFunds<'info>>
         ctx.accounts.patient_case.case_funded = false;
     }
 
-    // Close account if fully funded
-    if close_account {
-        // Transfer all remaining lamports, and mark account for closure
-        /*  NB: 
-        **patient_escrow.try_borrow_mut_lamports()? = 0;
-        **treatment_address.try_borrow_mut_lamports()? = treatment_address
-            .lamports()
-            .checked_add(patient_escrow.lamports())
-            .ok_or(CuraChainError::OverflowError)?;*/
-    }
+    // Mark Proposal As Executed To Prevent Replaying
+    ctx.accounts.proposal.executed = true;
 
 
     // EMIT AN EVENT FOR THIS INSTRUCTION ON-CHAIN ANYTIME THERE IS A RELEASE OF FUNDS

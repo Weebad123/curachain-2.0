@@ -84,6 +84,9 @@ pub enum CuraChainError{
     #[msg("Patient Case Has Not Yet Been Verified")]
     CaseNotYetVerified,
 
+    #[msg("Verifiers Can Still Do Verification On Case")]
+    VerifiersVerificationActive,
+
     #[msg("Not Enough Verifiers Have Voted On The Case")]
     NotEnoughVerifiers,
 
@@ -95,6 +98,9 @@ pub enum CuraChainError{
 
     #[msg("Proposal Has Not Been Approved By Multisig")]
     ProposalNotApproved,
+
+    #[msg("Proposal Has Already Been Executed")]
+    ProposalAlreadyExecuted,
 
     #[msg("Multisig Member Has Already Voted On Case")]
     MultisigMemberVoted,

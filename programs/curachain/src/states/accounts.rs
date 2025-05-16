@@ -71,6 +71,8 @@ pub struct PatientCase {
 
     pub case_funded: bool,
 
+    pub submission_time: i64,
+
     #[max_len(64)]
     pub link_to_records: String,
 }
@@ -155,6 +157,8 @@ pub struct Proposal {
     pub voted_multisig: Vec<MultisigApprovals>,
 
     pub approved: bool,
+
+    pub executed: bool,
 
     pub proposal_bump: u8,
 }

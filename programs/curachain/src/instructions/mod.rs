@@ -9,6 +9,7 @@ pub mod verifiers_operations;
 pub mod close_rejected_case;
 pub mod multisig_operations;
 pub mod mint_nft;
+pub mod admin_override_case;
 
  
 pub use create_patient_case::*;
@@ -22,3 +23,4 @@ pub use verifiers_operations::*;
 pub use close_rejected_case::*;
 pub use multisig_operations::*;
 pub use mint_nft::*;
+pub use admin_override_case::*;

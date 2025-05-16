@@ -58,6 +58,7 @@ pub fn initialize_patient(
                 case_id: patient_case_id,
                 link_to_records: link_to_records,
                 case_funded: false,
+                submission_time: Clock::get()?.unix_timestamp
             }
         );
 

@@ -338,6 +338,49 @@ pub struct VerifyPatientCase<'info> {
 }
 
 
+#[derive(Accounts)]
+#[instruction(case_id: String)]
+pub struct AdminOverrideCase<'info> {
+    #[account(
+        mut,
+        constraint = admin.key() == admin_account.admin_pubkey.key() @ CuraChainError::OnlyAdmin,
+    )]
+    pub admin: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"admin", admin.key().as_ref()],
+        bump = admin_account.bump
+    )]
+    pub admin_account: Account<'info, Administrator>,
+
+    #[account(
+        mut,
+        seeds = [b"case_lookup", case_id.as_bytes()],
+        bump = case_lookup.case_lookup_bump,
+        constraint = case_lookup.case_id_in_lookup == case_id @CuraChainError::InvalidCaseID,
+    )]
+    pub case_lookup: Account<'info, CaseIDLookup>,
+
+    #[account(
+        mut,
+        seeds = [b"patient", case_lookup.patient_address.as_ref()],
+        bump = patient_case.patient_case_bump,
+        constraint = patient_case.key() == case_lookup.patient_pda.key() @ CuraChainError::InvalidCaseID,
+        constraint = patient_case.case_id == case_id @ CuraChainError::InvalidCaseID,
+    )]
+    pub patient_case: Account<'info, PatientCase>,
+
+    /// CHECK: This account does not exist yet and will be created as the escrow PDA for the patient case. It is safe because the PDA is derived and checked in the instruction.
+    #[account(
+        mut,
+        // This account does not exist yet, and may be created upon admin override verification
+    )]
+    pub patient_escrow: AccountInfo<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+
 // IF CASE FAILS VERIFICATION, WE CALL THIS INSTRUCTION TO CLOSE THE PATIENT CASE PDA
 #[derive(Accounts)]
 #[instruction(case_id: String)]

@@ -74,6 +74,12 @@ pub mod curachain {
         Ok(())
     }
 
+    // Admin Can Override Verification If Verifiers Are Delaying
+    pub fn admin_override_case(ctx: Context<AdminOverrideCase>, case_id: String, is_verified: bool) -> Result<()> {
+        instructions::admin_override_case(ctx, case_id, is_verified)?;
+        Ok(())
+    }
+
 
     // Clearly Rejected Patient Case Must Be Closed
     #[access_control(check_patient_case_closable(&ctx, &case_id))]

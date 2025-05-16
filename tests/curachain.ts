@@ -30,7 +30,7 @@ import { publicKey } from "@coral-xyz/anchor/dist/cjs/utils";
 
 // Imports For The Nft Collection
 import { createNft, Metadata, MasterEdition, MPL_TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
-import { generateSigner, percentAmount } from "@metaplex-foundation/umi";
+import { generateSigner, isSigner, percentAmount } from "@metaplex-foundation/umi";
 
 describe("curachain", () => {
   // Configure the client to use the local cluster.
@@ -1574,30 +1574,6 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
     );
     console.log("Patient 1 Receives Native SOL of amount: ", escrowPDAbalance);
 
-    /* Get Data of donors, patientCase and Escrow
-    const patientCase1Data = await program.account.patientCase.fetch(
-      patient1CasePDA
-    );
-    const donor1Data = await program.account.donorInfo.fetch(donor1PDA);*/
-    //const donor2Data = await program.account.donorInfo.fetch(donor2PDA);
-
-    /* Donor 1 has made 15000 + 100 contributions, whereas Donor 2 has made 4500
-    expect(donor1Data.totalDonations.toNumber()).eq(15100);
-    expect(donor2Data.totalDonations.toNumber()).eq(4500);
-    // Patience Total Raised Updated
-    expect(patientCase1Data.totalRaised.toNumber()).eq(19600);
-    // Patience Escrow PDA receives Amount;
-    const escrowPDAbalance = await program.provider.connection.getBalance(
-      patient1EscrowPDA
-    );
-    // donated funds + rent-exempt value = total lamports in escrowPDA account.
-    // 19600 + 890880 = 910480 lamports
-    expect(escrowPDAbalance).eq(910480);
-
-    // Escrow PDA balance excluding the rent-Exempt = the donated funds
-    const escrowPDAbalanceActual = escrowPDAbalance - rentExempt;
-
-    expect(escrowPDAbalanceActual).eq(19600);*/
   });
 
   it("TEST 20    =========>>>>>>> Minting NFT to Donor", async () => {
@@ -1625,11 +1601,9 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
     const [donorNftMetadataPDA, ] = PublicKey.findProgramAddressSync(
       [
         Buffer.from("metadata"),
-        //new PublicKey(MPL_TOKEN_METADATA_PROGRAM_ID).toBuffer(),
         metaplexProgramId.toBuffer(),
         donorNftMintPDA.toBuffer()
       ],
-      //new PublicKey(MPL_TOKEN_METADATA_PROGRAM_ID)
       metaplexProgramId
     );
 
@@ -1788,7 +1762,7 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
       expect(members).to.include(multisig_member3.publicKey.toBase58());
       expect(members).to.include(multisig_member4.publicKey.toBase58());
       expect(members).to.include(multisig_member5.publicKey.toBase58());
-      //expect(members).to.include(multisig_member6.publicKey.toBase58());
+      
 
       // Let's Call Removal Instruction
       const removing_addresses: PublicKey[] = [
@@ -1816,7 +1790,6 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
       expect(membersLeft).to.include(multisig_member3.publicKey.toBase58());
       expect(membersLeft).to.not.include(multisig_member4.publicKey.toBase58());
       expect(membersLeft).to.include(multisig_member5.publicKey.toBase58());
-      //expect(membersLeft).to.include(multisig_member6.publicKey.toBase58());
 
   })
 
@@ -1899,17 +1872,6 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
       .signers([multisig_member3])
       .rpc();
 
-   /* await program.methods
-      .approveProposal("CASE0001", new BN(1), true)
-      .accounts({
-        multisigMember: multisig_member6.publicKey,
-        //@ts-ignore
-        multisig: multisigPDA,
-        caseLookup: caseLookupPDA,
-        proposal: proposalPDA
-      })
-      .signers([multisig_member6])
-      .rpc();*/
 
     await program.methods
       .approveProposal("CASE0001", new BN(1), true)
@@ -1932,8 +1894,8 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
                                                   TO TREATMENT WALLET 
                                                 TESTINGS
                                                                                 ...........................  */
-/*
-  it("TEST 14  ---------- Authorized Multisig Can Release Funds From Escrow To Treatment Wallet", async () => {
+
+  it("TEST 19  ---------- Authorized Multisig Can Release Funds From Escrow To Treatment Wallet", async () => {
     // let's get required pdas
     const [patient1CasePDA, patient1CaseBump] =
       PublicKey.findProgramAddressSync(
@@ -1949,11 +1911,7 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
         ],
         program.programId
       );
-    const [verifiersListPDA, verifiersListBump] =
-      PublicKey.findProgramAddressSync(
-        [Buffer.from("verifiers_list")],
-        program.programId
-      );
+   
     const [adminPDA, adminBump] = PublicKey.findProgramAddressSync(
       [Buffer.from("admin"), newAdmin.publicKey.toBuffer()],
       program.programId
@@ -1962,183 +1920,66 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
       [Buffer.from("case_lookup"), Buffer.from("CASE0001")],
       program.programId
     );
+    const [proposalPDA, proposalBump] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("proposal"),
+        Buffer.from("CASE0001"),
+        new BN(1).toArrayLike(Buffer,"le", 8)
+      ],
+      program.programId
+    );
 
-    const [verifier1PDA, verifier1Bump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("verifier_role"), verifier1Keypair.publicKey.toBuffer()],
+    const [multisigPDA, multisigBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("multisig"), Buffer.from("escrow-authority")],
       program.programId
     );
-    const [verifier2PDA, verifier2Bump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("verifier_role"), verifier2Keypair.publicKey.toBuffer()],
-      program.programId
-    );
-    const [verifier3PDA, verifier3Bump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("verifier_role"), verifier3Keypair.publicKey.toBuffer()],
-      program.programId
-    );
+  
+    const patientCaseData = await program.account.patientCase.fetch(patient1CasePDA);
+    const remainingAccounts = [];
+
+    for (const eachSplDonations of patientCaseData.splDonations) {
+      remainingAccounts.push(
+        {pubkey: eachSplDonations.mint, isWritable: false, isSigner: false},
+        {pubkey: eachSplDonations.patientTokenVault, isWritable: true, isSigner: false},
+      );
+      const facilityTokenAta = await getAssociatedTokenAddress(
+        eachSplDonations.mint,
+        facility_address.publicKey
+      );
+
+      remainingAccounts.push(
+        {pubkey: facilityTokenAta, isWritable: true, isSigner: false}
+      );
+      
+    }
 
     // We Assumed the Facility Wallet Has 1 SOL already prior to receiving the donated funds
     // hence the airdrop below
 
     await airdropSol(provider, facility_address.publicKey, 1);
-    // Ensure prior to Receiving Patient Treatment Funds From Escrow PDA, facility wallet has 1 SOL already
-    const facilityBalanceBeforeTransfer =
-      await program.provider.connection.getBalance(facility_address.publicKey);
-    expect(facilityBalanceBeforeTransfer).to.eq(1000000000);
-
-    const escrowBal = await program.provider.connection.getBalance(
-      patient1EscrowPDA
-    );
-
-    // Patient 1 Escrow PDA received 19600(donations) + rent-exempt(890880) = 910480. This is its balance prior to release_funds instruction
-    expect(escrowBal).to.eq(910480);
+    
     // Let's call the release_funds instruction
     await program.methods
-      .releaseFunds("CASE0001")
+      .releaseFunds("CASE0001", new BN(1))
       .accounts({
-        admin: newAdmin.publicKey,
-        // @ts-ignore
-        adminAccount: adminPDA,
+        transferAuthority: multisig_member1.publicKey,
+        //@ts-ignore
         patientCase: patient1CasePDA,
         patientEscrow: patient1EscrowPDA,
         caseLookup: caseLookupPDA,
-        verifiersList: verifiersListPDA,
-        // @ts-ignore
-        verifier1: verifier1Keypair.publicKey,
-        verifier2: verifier2Keypair.publicKey,
-        verifier3: verifier3Keypair.publicKey,
-        verifier1Pda: verifier1PDA,
-        verifier2Pda: verifier2PDA,
-        verifier3Pda: verifier3PDA,
+        multisig: multisigPDA,
+        proposal: proposalPDA,
         facilityAddress: facility_address.publicKey,
-      })
-      .signers([newAdmin, verifier1Keypair, verifier2Keypair, verifier3Keypair])
-      .rpc();
-    const escrowBalAfter = await program.provider.connection.getBalance(
-      patient1EscrowPDA
-    );
-    // The Escrow Balance After Release Should Be The Rent-exempt balance
-    expect(escrowBalAfter).to.eq(890880);
-
-    const facilityBalance = await program.provider.connection.getBalance(
-      facility_address.publicKey
-    );
-
-    // The Facility Wallet Upon Receiving The Funds From The Escrow PDA should be the donated amount + its 1 SOL balance prior
-    expect(facilityBalance).to.eq(1000019600);
-  });*/
-
-  /*        ..................   ONLY AUTHORIZED MULTISIG {
-                            ADMIN PLUS 3 VERIFIERS} CAN RELEASE
-                            THE FUNDS TO THE TREATMENT WALLET ADDRESSS
-                                                                            ..................  */
-/*
-  it("TEST 15  ::::::::::   ====>>>> UNHAPPY SCENARIO   :::   Only Authorized Admin plus 3 Verifiers Can Release Funds To Treatment Wallet", async () => {
-    // Let Get Respective PDAs
-    const [patient1CasePDA, patient1CaseBump] =
-      PublicKey.findProgramAddressSync(
-        [Buffer.from("patient"), patient1Keypair.publicKey.toBuffer()],
-        program.programId
-      );
-    const [patient1EscrowPDA, patient1EscrowBump] =
-      PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("patient_escrow"),
-          Buffer.from("CASE0001"),
-          patient1CasePDA.toBuffer(),
-        ],
-        program.programId
-      );
-    const [verifiersListPDA, verifiersListBump] =
-      PublicKey.findProgramAddressSync(
-        [Buffer.from("verifiers_list")],
-        program.programId
-      );
-    const [adminPDA, adminBump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("admin"), newAdmin.publicKey.toBuffer()],
-      program.programId
-    );
-    const [caseLookupPDA, caseLookupBump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("case_lookup"), Buffer.from("CASE0001")],
-      program.programId
-    );
-
-    const [patient1PDA, patient1Bump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("verifier_role"), patient1Keypair.publicKey.toBuffer()],
-      program.programId
-    );
-    const [verifier2PDA, verifier2Bump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("verifier_role"), verifier2Keypair.publicKey.toBuffer()],
-      program.programId
-    );
-    const [verifier3PDA, verifier3Bump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("verifier_role"), verifier3Keypair.publicKey.toBuffer()],
-      program.programId
-    );
-
-    const [donor3PDA, donor1Bump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("donor"), donor3Keypair.publicKey.toBuffer()],
-      program.programId
-    );
-    const [caseCounterPDA, caseCounterBump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("case_counter")],
-      program.programId
-    );
-
-    // Let Donor 3 contribute 300 lamports to verified case 1, and then We try to release funds
-    await program.methods
-      .donate("CASE0001", new BN(300))
-      .accounts({
-        donor: donor3Keypair.publicKey,
-        // @ts-ignore
-        caseLookup: caseLookupPDA,
-        patientCase: patient1CasePDA,
-        patientEscrow: patient1EscrowPDA,
-        caseCounter: caseCounterPDA,
-        donorAccount: donor3PDA,
+        tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       })
-      .signers([donor3Keypair])
+      .remainingAccounts(remainingAccounts)
+      .signers([multisig_member1])
       .rpc();
 
-    // Let's ensure the escrow PDA now has rent-exempt(890880) + 300 lamports
-    const escrowPatient1Bal = await program.provider.connection.getBalance(
-      patient1EscrowPDA
-    );
-    expect(escrowPatient1Bal).to.eq(891180);
-
-    // Now, Let's try to release that 300 lamports to the facility wallet
-    try {
-      await program.methods
-        .releaseFunds("CASE0001")
-        .accounts({
-          admin: newAdmin.publicKey,
-          // @ts-ignore
-          adminAccount: adminPDA,
-          patientCase: patient1CasePDA,
-          patientEscrow: patient1EscrowPDA,
-          caseLookup: caseLookupPDA,
-          verifiersList: verifiersListPDA,
-          // @ts-ignore
-          verifier1: patient1Keypair.publicKey,
-          verifier2: verifier2Keypair.publicKey,
-          verifier3: verifier3Keypair.publicKey,
-          verifier1Pda: patient1PDA, // used patient1 public key to derive pda, but that address has not been initialized as a verifier
-          verifier2Pda: verifier2PDA,
-          verifier3Pda: verifier3PDA,
-          facilityAddress: facility_address.publicKey,
-        })
-        .signers([
-          newAdmin,
-          patient1Keypair,
-          verifier2Keypair,
-          verifier3Keypair,
-        ])
-        .rpc();
-    } catch (err) {
-      expect(err.error.errorCode.code).to.eq("AccountNotInitialized");
-    }
   });
-*/
+    
   /*          .....................         CLOSING OF REJECTED CASE
                                                   TESTINGS
                                                                                     ..................   */
