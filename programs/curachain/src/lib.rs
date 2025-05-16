@@ -6,7 +6,7 @@ pub mod states;
 use instructions::*;
 use states::*;
 
-declare_id!("4t7Agar7zuPB4o6mit6jijt6RMuRdKtqE8FYRybApbBj");
+declare_id!("8zgRiYfKx4UkWuAqEJkxCsFL9uDKyu6m3Rqg2byghUN5");
 
 #[program]
 pub mod curachain {

@@ -1,5 +1,8 @@
 use anchor_spl::{
-    metadata::{create_master_edition_v3, create_metadata_accounts_v3, mpl_token_metadata::{self, types::{Collection, DataV2}}, update_metadata_accounts_v2, verify_collection, CreateMasterEditionV3, CreateMetadataAccountsV3, MetadataAccount, UpdateMetadataAccountsV2, VerifyCollection}, 
+    metadata::{create_master_edition_v3, create_metadata_accounts_v3, 
+        mpl_token_metadata::{ types::{Collection, DataV2}}, 
+        update_metadata_accounts_v2, verify_sized_collection_item, VerifySizedCollectionItem, 
+        CreateMasterEditionV3, CreateMetadataAccountsV3, MetadataAccount, UpdateMetadataAccountsV2}, 
     token_interface::{mint_to, MintTo}
     };
 
@@ -97,7 +100,7 @@ pub fn nft_mint(ctx: Context<MintNFT>, case_id: String, nft_uri: String) -> Resu
         create_master_edition_v3(cpi_context, Some(1))?;
 
         // We Need To Verify The Collection
-        let verify_cpi_accounts = VerifyCollection{
+        /*let verify_cpi_accounts = VerifyCollection{
             payer: ctx.accounts.donor.to_account_info(),
             collection_metadata: ctx.accounts.parent_collection_nft_metadata.to_account_info(),
             metadata: ctx.accounts.donor_nft_metadata.to_account_info(),
@@ -105,10 +108,18 @@ pub fn nft_mint(ctx: Context<MintNFT>, case_id: String, nft_uri: String) -> Resu
             collection_authority: ctx.accounts.admin.to_account_info(),
             collection_mint: ctx.accounts.parent_recognition_collection_nft.to_account_info(),
             collection_master_edition: ctx.accounts.parent_collection_master_edition.to_account_info(),
+        };*/
+        let verify_sized_cpi_accounts = VerifySizedCollectionItem{
+            payer: ctx.accounts.donor.to_account_info(),
+            collection_metadata: ctx.accounts.parent_collection_nft_metadata.to_account_info(),
+            metadata: ctx.accounts.donor_nft_metadata.to_account_info(),
+            collection_authority: ctx.accounts.admin.to_account_info(),
+            collection_mint: ctx.accounts.parent_recognition_collection_nft.to_account_info(),
+            collection_master_edition: ctx.accounts.parent_collection_master_edition.to_account_info(),
         };
-        let verify_cpi_ctx = CpiContext::new_with_signer(cpi_metadata_program, verify_cpi_accounts, multisig_seeds);
+        let verify_cpi_ctx = CpiContext::new_with_signer(cpi_metadata_program, verify_sized_cpi_accounts, multisig_seeds);
         // Call The Actual Verify instruction
-
+/* 
         let (authority_record_pda, authority_record_bump)= Pubkey::find_program_address(
             &[
                 b"metadata",
@@ -118,8 +129,9 @@ pub fn nft_mint(ctx: Context<MintNFT>, case_id: String, nft_uri: String) -> Resu
                 ctx.accounts.admin.key().as_ref()
             ],
             &mpl_token_metadata::ID
-        );
-        verify_collection(verify_cpi_ctx, None)?;
+        );*/
+        //verify_collection(verify_cpi_ctx, None)?;
+        verify_sized_collection_item(verify_cpi_ctx, None)?;
         
     } else {
         // Making Further Contribution To Same Case, Just Update Metadata Account

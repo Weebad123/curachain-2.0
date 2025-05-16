@@ -1,7 +1,7 @@
 
 use anchor_lang::prelude::*;
 
-use crate::states::{contexts::*, errors::*, MultisigApprovals};
+use crate::states::{contexts::*, errors::*, MultisigApprovals, MULTISIG_THRESHOLD};
 
 
 
@@ -9,7 +9,7 @@ use crate::states::{contexts::*, errors::*, MultisigApprovals};
 
 pub fn add_or_remove_members(ctx: Context<AddorRemoveMultisigMember>, member_addresses: Vec<Pubkey>, multisig_op_type: MultisigOperationType) -> Result<()> {
 
-    require!(member_addresses.len() < 6, CuraChainError::TooManyMembers);
+    require!(member_addresses.len() < 7, CuraChainError::TooManyMembers);
     let multisig = &mut ctx.accounts.multisig;
     
    match multisig_op_type {
@@ -106,6 +106,19 @@ pub fn proposal_approve(ctx: Context<ApproveProposal>, case_id: String, proposal
     });
 
     // SET PROPOSAL APPROVAL TO TRUE IF MULTISIG THRESHOLD HAS ACCEPTED THE PROPOSAL
+    let mut true_count = 0;
+
+    for i in proposal.voted_multisig.iter() {
+        if i.approval == true {
+            true_count = true_count + 1;
+        } else {
+            continue;
+        }
+    }
+    // Check If Approval threshold Has Reached
+    if true_count >= MULTISIG_THRESHOLD {
+        proposal.approved = true;
+    }
     
 
     Ok(())

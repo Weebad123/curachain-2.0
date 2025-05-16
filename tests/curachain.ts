@@ -80,6 +80,12 @@ describe("curachain", () => {
   const patient2Keypair = anchor.web3.Keypair.generate(); // 2 SOL
   const patient3Keypair = anchor.web3.Keypair.generate(); // 2 SOL
   const facility_address = anchor.web3.Keypair.generate();
+  const multisig_member1 = anchor.web3.Keypair.generate();
+  const multisig_member2 = anchor.web3.Keypair.generate();
+  const multisig_member3 = anchor.web3.Keypair.generate();
+  const multisig_member4 = anchor.web3.Keypair.generate();
+  const multisig_member5 = anchor.web3.Keypair.generate();
+  const multisig_member6 = anchor.web3.Keypair.generate();
   
 
 const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
@@ -137,6 +143,12 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
         patient1Keypair.publicKey,
         patient2Keypair.publicKey,
         patient3Keypair.publicKey,
+        multisig_member1.publicKey,
+        multisig_member2.publicKey,
+        multisig_member3.publicKey,
+        multisig_member4.publicKey,
+        multisig_member5.publicKey,
+        multisig_member6.publicKey,
         mintAuthority.publicKey,
       ],
       5
@@ -1677,7 +1689,7 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
                                       CONTRIBUTE TO AN UNVERIFIED CASE 2 OR 3
                                               WILL FAIL CERTAINLY
                                                                                       ................  */
-/*
+
   it("TEST 13  ==>>> Donors Attempt To Contribute To An Unverified Case II or III, Must Fail", async () => {
     // Testing For Case II
     const [patient2CasePDA, patient2CaseBump] =
@@ -1704,31 +1716,217 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
       program.programId
     );
 
-    const [donor1PDA, donor1Bump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("donor"), donor1Keypair.publicKey.toBuffer()],
+    const [donor2PDA, donor1Bump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("donor"), donor2Keypair.publicKey.toBuffer()],
       program.programId
     );
 
     // Let Donor 2 contribute 30000 to Unverified Case II
     try {
       await program.methods
-        .donate("CASE0002", new BN(30000))
+        .donateSol("CASE0002", new BN(30000))
         .accounts({
-          donor: donor1Keypair.publicKey,
+          donor: donor2Keypair.publicKey,
           // @ts-ignore
           caseLookup: caseLookupPDA2,
           patientCase: patient2CasePDA,
           patientEscrow: patient2EscrowPDA,
           caseCounter: caseCounterPDA,
-          donorAccount: donor1PDA,
+          donorAccount: donor2PDA,
           systemProgram: SystemProgram.programId,
         })
-        .signers([donor1Keypair])
+        .signers([donor2Keypair])
         .rpc();
     } catch (err) {
       expect(err.error.errorCode.code).to.equal("UnverifiedCase");
     }
-  });*/
+  });
+
+
+
+  /*           ----------------------      MULTISIG MEMBER ADDITION
+                                                       OR REMOVAL TESTING
+                                                                               ---------------------     */
+                                                                              
+  it("TEST 14    ===>>> Adding And Removing Multisig Members", async () => {
+    // Define Relevant PDAs
+    const [adminPDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("admin"), newAdmin.publicKey.toBuffer()],
+      program.programId
+    );
+    const [multisigPDA, multisigBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("multisig"), Buffer.from("escrow-authority")],
+      program.programId
+    );
+
+    const multisig_members: PublicKey[] = [
+      multisig_member1.publicKey,
+      multisig_member2.publicKey,
+      multisig_member3.publicKey,
+      multisig_member4.publicKey,
+      multisig_member5.publicKey,
+    ];
+    // Let Admin Add Multisig Members
+    await program.methods
+      .updateMultisig(multisig_members, { addMember :{}})
+      .accounts({
+        admin: newAdmin.publicKey,
+        //@ts-ignore
+        adminAccount: adminPDA,
+        multisig: multisigPDA,
+      })
+      .signers([newAdmin])
+      .rpc();
+
+      // Let's Make Assertions
+      const multisigData = await program.account.multisig.fetch(multisigPDA);
+      const members = multisigData.multisigMembers.map(member => member.toBase58());
+      expect(multisigData.multisigMembers.length).to.eq(5);
+      expect(multisigData.multisigAdmin).deep.eq(newAdmin.publicKey);
+      expect(members).to.include(multisig_member1.publicKey.toBase58());
+      expect(members).to.include(multisig_member2.publicKey.toBase58());
+      expect(members).to.include(multisig_member3.publicKey.toBase58());
+      expect(members).to.include(multisig_member4.publicKey.toBase58());
+      expect(members).to.include(multisig_member5.publicKey.toBase58());
+      //expect(members).to.include(multisig_member6.publicKey.toBase58());
+
+      // Let's Call Removal Instruction
+      const removing_addresses: PublicKey[] = [
+        multisig_member2.publicKey,
+        multisig_member4.publicKey
+      ];
+
+      await program.methods
+        .updateMultisig(removing_addresses, { removeMember :{}})
+        .accounts({
+          admin: newAdmin.publicKey,
+        //@ts-ignore
+          adminAccount: adminPDA,
+          multisig: multisigPDA,
+        })
+        .signers([newAdmin])
+        .rpc();
+
+      const multisigDataRemoval = await program.account.multisig.fetch(multisigPDA);
+      const membersLeft = multisigDataRemoval.multisigMembers.map(member => member.toBase58());
+      expect(multisigDataRemoval.multisigMembers.length).to.eq(3);
+      expect(multisigData.multisigAdmin).deep.eq(newAdmin.publicKey);
+      expect(membersLeft).to.include(multisig_member1.publicKey.toBase58());
+      expect(membersLeft).to.not.include(multisig_member2.publicKey.toBase58());
+      expect(membersLeft).to.include(multisig_member3.publicKey.toBase58());
+      expect(membersLeft).to.not.include(multisig_member4.publicKey.toBase58());
+      expect(membersLeft).to.include(multisig_member5.publicKey.toBase58());
+      //expect(membersLeft).to.include(multisig_member6.publicKey.toBase58());
+
+  })
+
+
+  /*       ---------------------        PROPOSAL CREATIONS AND 
+                                          APPROVAL TO RELEASE FUNDS
+                                                                              ----------------------------*/
+
+  it("TEST 15    =======>>>>>> Create Proposal To Release Funds", async () => {
+    // Get The Relevant PDAs
+    const [multisigPDA, multisigBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("multisig"), Buffer.from("escrow-authority")],
+      program.programId
+    );
+    const [patient1CasePDA, patient1CaseBump] =
+      PublicKey.findProgramAddressSync(
+        [Buffer.from("patient"), patient1Keypair.publicKey.toBuffer()],
+        program.programId
+      );
+    const [patient1EscrowPDA, patient1EscrowBump] =
+      PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("patient_escrow"),
+          Buffer.from("CASE0001"),
+          patient1CasePDA.toBuffer(),
+        ],
+        program.programId
+      );
+
+    const [caseCounterPDA, caseCounterBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("case_counter")],
+      program.programId
+    );
+    const [caseLookupPDA, caseLookupBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("case_lookup"), Buffer.from("CASE0001")],
+      program.programId
+    );
+    const [proposalPDA, proposalBump] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("proposal"),
+        Buffer.from("CASE0001"),
+        new BN(1).toArrayLike(Buffer,"le", 8)
+      ],
+      program.programId
+    );
+
+
+    // Let's Call The Actual Instruction
+    await program.methods
+      .proposeTransfer("CASE0001", new BN(1))
+      .accounts({
+        proposer: multisig_member1.publicKey,
+        //@ts-ignore
+        multisig: multisigPDA,
+        caseLookup: caseLookupPDA,
+        patientCase: patient1CasePDA,
+        proposal: proposalPDA,
+      })
+      .signers([multisig_member1])
+      .rpc();
+
+    // Make Assertions
+    const proposalData = await program.account.proposal.fetch(proposalPDA);
+    expect(proposalData.approved).to.be.false;
+    expect(proposalData.proposalIndex.toNumber()).eq(1);
+    expect(proposalData.caseId.toString()).eq("CASE0001");
+    expect(proposalData.votedMultisig.length).to.eq(1);
+
+
+    // Allow Multisig Members to Vote On Proposals
+    await program.methods
+      .approveProposal("CASE0001", new BN(1), true)
+      .accounts({
+        multisigMember: multisig_member3.publicKey,
+        //@ts-ignore
+        multisig: multisigPDA,
+        caseLookup: caseLookupPDA,
+        proposal: proposalPDA
+      })
+      .signers([multisig_member3])
+      .rpc();
+
+   /* await program.methods
+      .approveProposal("CASE0001", new BN(1), true)
+      .accounts({
+        multisigMember: multisig_member6.publicKey,
+        //@ts-ignore
+        multisig: multisigPDA,
+        caseLookup: caseLookupPDA,
+        proposal: proposalPDA
+      })
+      .signers([multisig_member6])
+      .rpc();*/
+
+    await program.methods
+      .approveProposal("CASE0001", new BN(1), true)
+      .accounts({
+        multisigMember: multisig_member5.publicKey,
+        //@ts-ignore
+        multisig: multisigPDA,
+        caseLookup: caseLookupPDA,
+        proposal: proposalPDA
+      })
+      .signers([multisig_member5])
+      .rpc();
+
+    // Assertions For Approval working
+    const proposalDataVotes = await program.account.proposal.fetch(proposalPDA);
+    expect(proposalDataVotes.approved).to.be.true;
+  })
 
   /*           .......................           RELEASE OF FUNDS 
                                                   TO TREATMENT WALLET 
@@ -1944,7 +2142,7 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
   /*          .....................         CLOSING OF REJECTED CASE
                                                   TESTINGS
                                                                                     ..................   */
-/*
+
   it("TEST 16  --------------     ANY USER CAN CLOSE A REJECTED CASE", async () => {
     // Let's get the respective PDAs
     // Pretty Clear Case 3 Was Rejected, as out of 4 Verifiers, 3 rejected and only 1 approved.
@@ -1982,12 +2180,12 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
       patient3CasePDA
     );
     expect(patient3CaseCloseData).to.eq(null);
-  });*/
+  });
 
   /*     .............................. A VERIFIED CASE CAN NEVER
                                               BE CLOSED
                                                                       ....................     */
-/*
+
   it("TEST 17  ------------      A VERIFIED CASE CAN NOT BE CLOSED, NOT EVEN BY ADMIN", async () => {
     // Pretty Clear Case I is verified. Attempt to close it will produce an error
     const [caseLookupPDA, caseLookupBump] = PublicKey.findProgramAddressSync(
@@ -2021,8 +2219,8 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
     } catch (err) {
       expect(err.error.errorCode.code).to.eq("CaseAlreadyVerified");
     }
-  });*/
-/*
+  });
+
   it("TEST 18   ------------  A CASE THAT HAS NOT ALREADY REACHED THE 70% QUORUM EVEN THOUGH 50% VERIFIERS HAVE VOTED CAN BE CLOSED", async () => {
     // Pretty Clear Case I is verified. Attempt to close it will produce an error
     const [caseLookupPDA, caseLookupBump] = PublicKey.findProgramAddressSync(
@@ -2059,5 +2257,5 @@ const metaplexProgramId = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt51
       patient2CasePDA
     );
     expect(patient2CaseCloseData).to.eq(null);
-  });*/
+  });
 });
